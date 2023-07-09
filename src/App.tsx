@@ -3,6 +3,7 @@ import { useForm, FormProvider, useFieldArray } from "react-hook-form";
 import { PlusCircle, XCircle } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Form } from "./components/Form";
 
 const createUserSchema = z.object({
 	name: z
@@ -46,7 +47,7 @@ const createUserSchema = z.object({
 			})
 		)
 		.min(1, {
-			message: "Pelo menos 1 tecnologia devem ser informada.",
+			message: "Pelo menos 1 tecnologia deve ser informada.",
 		}),
 });
 
@@ -64,9 +65,8 @@ export function App() {
 	}
 
 	const {
-		register,
 		handleSubmit,
-		formState: { isSubmitting, errors },
+		formState: { isSubmitting },
 		watch,
 		control,
 	} = createUserForm;
@@ -87,123 +87,96 @@ export function App() {
 
 	return (
 		<main className="h-screen flex flex-row gap-6 items-center justify-center">
-			<form
-				onSubmit={handleSubmit(createUser)}
-				className="flex flex-col gap-4 w-full max-w-xs"
-			>
-				<div className="flex flex-col gap-1">
-					<label
-						className="text-sm text-zinc-600 flex items-center justify-between"
-						htmlFor="name"
-					>
-						Nome
-					</label>
-					<input
-						type="name"
-						id="name"
-						className="flex-1 rounded border border-zinc-300 shadow-sm px-3 py-2 text-zinc-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
-						{...register("name")}
-					/>
-					{errors.name && <span>{errors.name.message}</span>}
-				</div>
-
-				<div className="flex flex-col gap-1">
-					<label
-						className="text-sm text-zinc-600 flex items-center justify-between"
-						htmlFor="email"
-					>
-						E-mail
-					</label>
-					<input
-						type="email"
-						id="email"
-						className="flex-1 rounded border border-zinc-300 shadow-sm px-3 py-2 text-zinc-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
-						{...register("email")}
-					/>
-					{errors.email && <span>{errors.email.message}</span>}
-				</div>
-
-				<div className="flex flex-col gap-1">
-					<label
-						className="text-sm text-zinc-600 flex items-center justify-between"
-						htmlFor="password"
-					>
-						Senha
-						{isPasswordStrong ? (
-							<span className="text-xs text-emerald-600">
-								Senha forte
-							</span>
-						) : (
-							<span className="text-xs text-red-500">
-								Senha fraca
-							</span>
-						)}
-					</label>
-
-					<input
-						id="password"
-						type="password"
-						className="flex-1 rounded border border-zinc-300 shadow-sm px-3 py-2 text-zinc-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
-						{...register("password")}
-					/>
-
-					{errors.password && <span>{errors.password.message}</span>}
-				</div>
-
-				<div className="flex flex-col gap-1">
-					<label className="text-sm text-zinc-600 flex items-center justify-between">
-						Tecnologias
-						<button
-							type="button"
-							onClick={addNewTech}
-							className="text-emerald-500 font-semibold text-xs flex items-center gap-1"
-						>
-							Adicionar nova
-							<PlusCircle size={14} />
-						</button>
-					</label>
-					{errors.techs && <span>{errors.techs.message}</span>}
-
-					{fields.map((field, index) => {
-						const fieldName = `techs.${index}.title`;
-
-						return (
-							<div
-								className="flex flex-col gap-1"
-								key={field.id}
-							>
-								<div className="flex gap-2 items-center">
-									<input
-										type={"text"}
-										{...register(`techs.${index}.title`)}
-										className="flex-1 rounded border border-zinc-300 shadow-sm px-3 py-2 text-zinc-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
-									/>
-									<button
-										type="button"
-										onClick={() => remove(index)}
-										className="text-red-500"
-									>
-										<XCircle size={14} />
-									</button>
-								</div>
-								{errors.techs?.[index]?.title && (
-									<span>
-										{errors.techs?.[index]?.title?.message}
-									</span>
-								)}
-							</div>
-						);
-					})}
-				</div>
-
-				<button
-					type="submit"
-					disabled={isSubmitting}
-					className="bg-violet-500 text-white rounded px-3 h-10 font-semibold text-sm hover:bg-violet-600"
+			<FormProvider {...createUserForm}>
+				<form
+					onSubmit={handleSubmit(createUser)}
+					className="flex flex-col gap-4 w-full max-w-xs"
 				>
-					Salvar
-				</button>
-			</form>
+					<Form.Field>
+						<Form.Label htmlFor="name">Nome</Form.Label>
+						<Form.Input
+							type="name"
+							name="name"
+						/>
+						<Form.ErrorMessage field="name" />
+					</Form.Field>
+
+					<Form.Field>
+						<Form.Label htmlFor="email">E-mail</Form.Label>
+						<Form.Input
+							type="email"
+							name="email"
+						/>
+						<Form.ErrorMessage field="email" />
+					</Form.Field>
+
+					<Form.Field>
+						<Form.Label htmlFor="password">
+							Senha
+							{isPasswordStrong ? (
+								<span className="text-xs text-emerald-600">
+									Senha forte
+								</span>
+							) : (
+								<span className="text-xs text-red-500">
+									Senha fraca
+								</span>
+							)}
+						</Form.Label>
+						<Form.Input
+							type="password"
+							name="password"
+						/>
+						<Form.ErrorMessage field="password" />
+					</Form.Field>
+
+					<Form.Field>
+						<Form.Label>
+							Tecnologias
+							<button
+								type="button"
+								onClick={addNewTech}
+								className="text-emerald-500 font-semibold text-xs flex items-center gap-1"
+							>
+								Adicionar nova
+								<PlusCircle size={14} />
+							</button>
+						</Form.Label>
+						<Form.ErrorMessage field="techs" />
+
+						{fields.map((field, index) => {
+							const fieldName = `techs.${index}.title`;
+
+							return (
+								<Form.Field key={field.id}>
+									<div className="flex gap-2 items-center">
+										<Form.Input
+											type={fieldName}
+											name={fieldName}
+										/>
+										<button
+											type="button"
+											onClick={() => remove(index)}
+											className="text-red-500"
+										>
+											<XCircle size={14} />
+										</button>
+									</div>
+									<Form.ErrorMessage field={fieldName} />
+								</Form.Field>
+							);
+						})}
+					</Form.Field>
+
+					<button
+						type="submit"
+						disabled={isSubmitting}
+						className="bg-violet-500 text-white rounded px-3 h-10 font-semibold text-sm hover:bg-violet-600"
+					>
+						Salvar
+					</button>
+				</form>
+			</FormProvider>
 
 			{output && (
 				<pre className="text-sm bg-zinc-800 text-zinc-100 p-6 rounded-lg">
